@@ -11,14 +11,19 @@ const redis = Redis.fromEnv();
 
 export const revalidate = 60;
 export default async function ProjectsPage() {
-  const views = (
-    await redis.mget<number[]>(
-      ...allProjects.map((p) => ["pageviews", "projects", p.slug].join(":")),
-    )
-  ).reduce((acc, v, i) => {
-    acc[allProjects[i].slug] = v ?? 0;
-    return acc;
-  }, {} as Record<string, number>);
+  const keys = allProjects.map((p) => ["pageviews", "projects", p.slug].join(":"));
+
+  let views: Record<string, number> = {};
+
+  if (keys.length > 0) {
+    const results = await redis.mget<number[]>(...keys);
+    views = results.reduce((acc, v, i) => {
+      acc[allProjects[i].slug] = v ?? 0;
+      return acc;
+    }, {} as Record<string, number>);
+  } else {
+    views = {};
+  }
 
   const featured = allProjects.find((project) => project.slug === "carpooling_system")!;
   const top2 = allProjects.find((project) => project.slug === "bulbul-learning-management-system")!;
