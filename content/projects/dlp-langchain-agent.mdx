@@ -1,0 +1,28 @@
+---
+title: "DLP LangChain Multi-Tool Agent"
+description: "A Deep Learning Project focused on building a LangChain-powered multi-tool AI agent with document parsing, weather retrieval, text generation, summarization, and calculator capabilities."
+date: "2025-05-15"
+repository: "Hamza-Ismail2"
+published: true
+---
+
+This project was developed as part of my Deep Learning Project (DLP) work in Spring 2025.
+I designed and implemented a **LangChain-based intelligent agent** that can reason over multiple tools and execute practical tasks through a single interface.
+
+The system combines LLM orchestration with tool-calling workflows:
+
+- **Agent Architecture:** implemented a zero-shot ReAct style LangChain agent for dynamic tool selection.
+- **LLM Integration:** connected Groq-compatible chat models through OpenAI-style endpoints for fast responses.
+- **Document Parsing Tool:** extracts and processes content from `.pdf`, `.docx`, `.txt`, `.md`, and `.html` files.
+- **Weather Tool:** integrates geocoding + Open-Meteo APIs to fetch real-time weather by city.
+- **Calculator Tool:** supports arithmetic expression evaluation for quick numerical tasks.
+- **Content Generation + Summarization:** generates long-form topic text and summarizes it using transformer pipelines.
+
+I also validated the agent with real usage flows, including:
+
+- mathematical queries
+- city weather lookups
+- document extraction and summarization
+- topic generation followed by concise summary output
+
+This project gave me practical experience in **LLM tool orchestration, prompt-driven reasoning, API integration, and end-to-end agent workflow design** for real-world AI applications.

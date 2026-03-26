@@ -42,7 +42,7 @@ export default function Home() {
             className="underline duration-500 hover:text-zinc-300"
           >
             portfolio
-          </Link> to solve API authentication and authorization for developers.
+          </Link> to showcase projects I built as a developer.
         </h2>
       </div>
     </div>

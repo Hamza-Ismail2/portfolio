@@ -1,7 +1,6 @@
-import { Redis } from "@upstash/redis";
 import { NextRequest, NextResponse } from "next/server";
+import { redis } from "@/util/redis";
 
-const redis = Redis.fromEnv();
 export const config = {
   runtime: "edge",
 };
@@ -22,6 +21,11 @@ export default async function incr(req: NextRequest): Promise<NextResponse> {
   if (!slug) {
     return new NextResponse("Slug not found", { status: 400 });
   }
+
+  if (!redis) {
+    return new NextResponse(null, { status: 202 });
+  }
+
   const ip = req.ip;
   if (ip) {
     // Hash the IP in order to not store it directly in your db.
@@ -39,7 +43,7 @@ export default async function incr(req: NextRequest): Promise<NextResponse> {
       ex: 24 * 60 * 60,
     });
     if (!isNew) {
-      new NextResponse(null, { status: 202 });
+      return new NextResponse(null, { status: 202 });
     }
   }
   await redis.incr(["pageviews", "projects", slug].join(":"));

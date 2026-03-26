@@ -9,11 +9,11 @@ export const metadata: Metadata = {
     default: "portfolio-hamza-ismail2s-projects.vercel.app",
     template: "%s | portfolio-hamza-ismail2s-projects.vercel.app",
   },
-  description: "Co-founder of unkey.dev and founder of planetfall.io",
+  description: "Student at FAST NUCES Karachi, worked at Motive INC as software engineer",
   openGraph: {
     title: "portfolio-hamza-ismail2s-projects.vercel.app",
     description:
-      "Co-founder of unkey.dev and founder of planetfall.io",
+      "Student at FAST NUCES Karachi, worked at Motive INC as software engineer",
     url: "https://portfolio-hamza-ismail2s-projects.vercel.app.com",
     siteName: "portfolio-hamza-ismail2s-projects.vercel.app.com",
     images: [

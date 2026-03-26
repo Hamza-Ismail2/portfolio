@@ -4,38 +4,68 @@ import { allProjects } from "contentlayer/generated";
 import { Navigation } from "../components/nav";
 import { Card } from "../components/card";
 import { Article } from "./article";
-import { Redis } from "@upstash/redis";
 import { Eye } from "lucide-react";
-
-const redis = Redis.fromEnv();
+import { redis } from "@/util/redis";
 
 export const revalidate = 60;
 export default async function ProjectsPage() {
-  const views = (
-    await redis.mget<number[]>(
-      ...allProjects.map((p) => ["pageviews", "projects", p.slug].join(":")),
-    )
-  ).reduce((acc, v, i) => {
-    acc[allProjects[i].slug] = v ?? 0;
-    return acc;
-  }, {} as Record<string, number>);
+  const publishedProjects = allProjects.filter((p) => p.published);
+  const sortedByDate = [...publishedProjects].sort(
+    (a, b) =>
+      new Date(b.date ?? Number.POSITIVE_INFINITY).getTime() -
+      new Date(a.date ?? Number.POSITIVE_INFINITY).getTime(),
+  );
 
-  const featured = allProjects.find((project) => project.slug === "carpooling_system")!;
-  const top2 = allProjects.find((project) => project.slug === "bulbul-learning-management-system")!;
-  const top3 = allProjects.find((project) => project.slug === "divide-and-conquer")!;
-  const sorted = allProjects
-    .filter((p) => p.published)
-    .filter(
-      (project) =>
-        project.slug !== featured.slug &&
-        project.slug !== top2.slug &&
-        project.slug !== top3.slug,
-    )
-    .sort(
-      (a, b) =>
-        new Date(b.date ?? Number.POSITIVE_INFINITY).getTime() -
-        new Date(a.date ?? Number.POSITIVE_INFINITY).getTime(),
+  const views = redis
+    ? (
+      await redis.mget<number[]>(
+        ...publishedProjects.map((p) => ["pageviews", "projects", p.slug].join(":")),
+      )
+    ).reduce((acc, v, i) => {
+      acc[publishedProjects[i].slug] = v ?? 0;
+      return acc;
+    }, {} as Record<string, number>)
+    : publishedProjects.reduce((acc, project) => {
+      acc[project.slug] = 0;
+      return acc;
+    }, {} as Record<string, number>);
+
+  const pinnedTopSlugs = [
+    "bulbul-learning-management-system",
+    "gama",
+    "dlp-langchain-agent",
+  ];
+
+  const pinnedTopProjects = pinnedTopSlugs
+    .map((slug) => publishedProjects.find((project) => project.slug === slug))
+    .filter((project): project is (typeof publishedProjects)[number] => Boolean(project));
+
+  const topPicks = [
+    ...pinnedTopProjects,
+    ...sortedByDate.filter((project) => !pinnedTopSlugs.includes(project.slug)),
+  ].slice(0, 3);
+
+  const [featured, top2, top3] = topPicks;
+
+  if (!featured) {
+    return (
+      <div className="relative pb-16">
+        <Navigation />
+        <div className="px-6 pt-20 mx-auto max-w-7xl lg:px-8 md:pt-24 lg:pt-32">
+          <h2 className="text-3xl font-bold tracking-tight text-zinc-100 sm:text-4xl">
+            Projects
+          </h2>
+          <p className="mt-4 text-zinc-400">
+            No project content found. Check the MDX frontmatter and restart the dev server.
+          </p>
+        </div>
+      </div>
     );
+  }
+
+  const excluded = new Set(topPicks.map((project) => project.slug));
+
+  const sorted = sortedByDate.filter((project) => !excluded.has(project.slug));
 
   return (
     <div className="relative pb-16">
@@ -94,7 +124,7 @@ export default async function ProjectsPage() {
           </Card>
 
           <div className="flex flex-col w-full gap-8 mx-auto border-t border-gray-900/10 lg:mx-0 lg:border-t-0 ">
-            {[top2, top3].map((project) => (
+            {[top2, top3].filter(Boolean).map((project) => (
               <Card key={project.slug}>
                 <Article project={project} views={views[project.slug] ?? 0} />
               </Card>
