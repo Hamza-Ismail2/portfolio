@@ -10,25 +10,31 @@ import { redis } from "@/util/redis";
 export const revalidate = 60;
 export default async function ProjectsPage() {
   const publishedProjects = allProjects.filter((p) => p.published);
+  const defaultViews = publishedProjects.reduce((acc, project) => {
+    acc[project.slug] = 0;
+    return acc;
+  }, {} as Record<string, number>);
+
   const sortedByDate = [...publishedProjects].sort(
     (a, b) =>
       new Date(b.date ?? Number.POSITIVE_INFINITY).getTime() -
       new Date(a.date ?? Number.POSITIVE_INFINITY).getTime(),
   );
 
-  const views = redis
-    ? (
-      await redis.mget<number[]>(
+  let views = defaultViews;
+  if (redis) {
+    try {
+      const values = await redis.mget<number[]>(
         ...publishedProjects.map((p) => ["pageviews", "projects", p.slug].join(":")),
-      )
-    ).reduce((acc, v, i) => {
-      acc[publishedProjects[i].slug] = v ?? 0;
-      return acc;
-    }, {} as Record<string, number>)
-    : publishedProjects.reduce((acc, project) => {
-      acc[project.slug] = 0;
-      return acc;
-    }, {} as Record<string, number>);
+      );
+      views = values.reduce((acc, v, i) => {
+        acc[publishedProjects[i].slug] = v ?? 0;
+        return acc;
+      }, {} as Record<string, number>);
+    } catch {
+      views = defaultViews;
+    }
+  }
 
   const pinnedTopSlugs = [
     "bulbul-learning-management-system",
